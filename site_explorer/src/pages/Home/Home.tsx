@@ -1,133 +1,62 @@
 import { useState, useEffect } from 'react';
 import { getClients, getSitesWithPagination } from '../../services/api';
-import ClientList from '../../components/ClientList/ClientList';
-import ListView from '../../components/ListView';
-import ClientDropdown from '../../components/ClientDropdown';
-import Pagination from '../../components/Pagination';
-import { Client } from '../../types/Client';
-import { Site } from '../../types/Site';
+import { Link } from 'react-router-dom';
 import './Home.css';
 
 const Home = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [sites, setSites] = useState<Site[]>([]);
-  const [viewMode, setViewMode] = useState<'all' | 'client' | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1); // Track the current page for pagination
-  const [totalPages, setTotalPages] = useState(1); // Track total number of pages
-  const [limit] = useState(10); // Set pagination limit to 10 per page
+  const [totalSites, setTotalSites] = useState(0);
+  const [totalClients, setTotalClients] = useState(0);
+  const [recentSites, setRecentSites] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const clientsData = await getClients();
-        const { data: sitesData, totalPages } = await getSitesWithPagination(
-          page,
-          limit,
-        );
-        setClients(clientsData);
-        setSites(sitesData);
-        setTotalPages(totalPages); // Set the total pages from the API response
-        setLoading(false);
-      } catch (error: unknown) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
-        );
-        setLoading(false);
-      }
+      const clientsData = await getClients();
+      const { data: sitesData } = await getSitesWithPagination(1, 5); // Fetch the first 5 recent sites
+      setTotalClients(clientsData.length);
+      setTotalSites(sitesData.length); // Assuming the total is available in the response
+      setRecentSites(sitesData);
     };
 
     fetchData();
-  }, [page, limit]);
-
-  // Handle fetching sites for a specific client
-  useEffect(() => {
-    const fetchSitesForClient = async () => {
-      if (!selectedClientId) return; // Skip if no client is selected
-      try {
-        setLoading(true);
-        const { data: sitesData } = await getSitesWithPagination(page, limit);
-        setSites(
-          sitesData.filter((site: Site) => site.clientId === selectedClientId),
-        );
-        setLoading(false);
-      } catch (error: unknown) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
-        );
-        setLoading(false);
-      }
-    };
-
-    if (viewMode === 'client') {
-      fetchSitesForClient();
-    }
-  }, [selectedClientId, page, limit, viewMode]);
-
-  const handleViewModeChange = (mode: 'all' | 'client') => {
-    setViewMode(mode);
-    setPage(1); // Reset to page 1 when switching views
-  };
-
-  const handleClientChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedClientId(event.target.value);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage); // Update the current page
-  };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  }, []);
 
   return (
     <div className="home-container">
-      <h1>Client Sites Portal</h1>
+      <h1>Welcome to the Client Sites Portal</h1>
 
-      {/* View mode selection */}
-      <div className="view-selection">
-        <button onClick={() => handleViewModeChange('all')}>
-          View All Sites
-        </button>
-        <button onClick={() => handleViewModeChange('client')}>
-          Filter by Client
-        </button>
+      {/* Key Metrics Section */}
+      <div className="metrics">
+        <div className="metric-item">
+          <h3>Total Sites</h3>
+          <p>{totalSites}</p>
+        </div>
+        <div className="metric-item">
+          <h3>Total Clients</h3>
+          <p>{totalClients}</p>
+        </div>
       </div>
 
-      {/* View all sites with pagination */}
-      {viewMode === 'all' && (
-        <>
-          <ListView sites={sites} />
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </>
-      )}
+      {/* Recent Sites Section */}
+      <div className="recent-sites">
+        <h2>Recently Added Sites</h2>
+        <ul>
+          {recentSites.map((site) => (
+            <li key={site.id}>
+              {site.title} - {new Date(site.createdAt).toLocaleDateString()}
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      {/* Filter by client */}
-      {viewMode === 'client' && (
-        <>
-          <ClientDropdown
-            clients={clients}
-            selectedClientId={selectedClientId}
-            handleClientChange={handleClientChange}
-          />
-          {selectedClientId && sites.length > 0 && (
-            <ListView
-              sites={sites.filter((site) => site.clientId === selectedClientId)}
-            />
-          )}
-        </>
-      )}
+      {/* Navigation Links */}
+      <div className="navigation-links">
+        <Link to="/sites">
+          <button>View All Sites</button>
+        </Link>
+        <Link to="/clients">
+          <button>Filter Sites by Client</button>
+        </Link>
+      </div>
     </div>
   );
 };

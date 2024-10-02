@@ -13,12 +13,16 @@ export const getSitesWithPagination = async (
 
   if (!response.ok) throw new Error('Failed to fetch sites');
 
+  // Get the total count of sites from the X-Total-Count header
+  const totalCount = response.headers.get('X-Total-Count'); // returns the total number of items in the header
+  const totalPages = totalCount ? Math.ceil(parseInt(totalCount) / limit) : 1; // Calculate total pages
+
   // Get Link header from response for pagination links (first, prev, next, last)
   const linkHeader = response.headers.get('Link');
   const paginationLinks = parseLinkHeader(linkHeader);
 
   const data = await response.json();
-  return { data, paginationLinks };
+  return { data, paginationLinks, totalPages }; // Include totalPages in the returned object
 };
 
 // Helper function to parse the Link header
@@ -26,18 +30,18 @@ const parseLinkHeader = (header: string | null) => {
   if (!header) return {};
 
   const links: { [key: string]: string } = {};
-  const parts = header.split(',');
+  const parts = header.split(','); // Split by commas to get individual links
 
   parts.forEach((part) => {
-    const section = part.split(';');
+    const section = part.split(';'); // Split by semicolons to separate URL from rel
     if (section.length === 2) {
       const url = section[0].replace(/<(.*)>/, '$1').trim();
       const name = section[1].replace(/rel="(.*)"/, '$1').trim();
-      links[name] = url;
+      links[name] = url; // Store in the object
     }
   });
 
-  return links;
+  return links; // Return the object containing pagination links
 };
 
 // Fetch site details by ID
