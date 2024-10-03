@@ -1,5 +1,6 @@
 import React from 'react';
 import { Client } from '../../types/Client';
+import './ClientDropdown.css';
 
 interface ClientDropdownProps {
   clients: Client[];
@@ -13,7 +14,11 @@ const ClientDropdown = ({
   handleClientChange,
 }: ClientDropdownProps) => {
   return (
-    <select value={selectedClientId || ''} onChange={handleClientChange}>
+    <select
+      className="client-dropdown-select"
+      value={selectedClientId || ''}
+      onChange={handleClientChange}
+    >
       <option value="" disabled>
         Choose a client
       </option>

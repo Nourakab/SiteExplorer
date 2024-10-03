@@ -1,5 +1,12 @@
 const API_BASE_URL = 'https://tracktik-challenge.staffr.com';
 
+// Fetch all sites
+export const getAllSites = async () => {
+  const response = await fetch(`${API_BASE_URL}/sites`);
+  if (!response.ok) throw new Error('Failed to fetch sites');
+  return response.json();
+};
+
 // Fetch all sites with optional pagination, sorting, and link headers
 export const getSitesWithPagination = async (
   page = 1,

@@ -1,19 +1,36 @@
-import React, { useState } from 'react';
-import Pagination from '../../components/Pagination';
+import React, { useState, useEffect } from 'react';
 import ClientList from '../../components/ClientList';
+import ClientDropdown from '../../components/ClientDropdown'; // Import ClientDropdown
 import { useFetchData } from '../../hooks/useFetchData';
-import './AllClientsPage.css';
 
 const AllClientsPage = () => {
-  const [page, setPage] = useState(1); // Track the current page for pagination
-  const [limit] = useState(10); // Set pagination limit to 10 per page
-  const { clients, sites, totalPages, loading, error } = useFetchData(
-    page,
-    limit,
-  );
+  const [page, setpage] = useState(1);
+  const [limit] = useState(10);
+  const { clients, sites, loading, error } = useFetchData(page, limit);
+  const [filteredClients, setFilteredClients] = useState(clients); // Store filtered clients
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null); // Track selected client
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage); // Update the current page
+  useEffect(() => {
+    // Initialize the filtered clients with all clients on the first load
+    if (clients) {
+      setFilteredClients(clients);
+    }
+  }, [clients]);
+
+  // Handle client change in the dropdown
+  const handleClientChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedClientId = event.target.value;
+    setSelectedClientId(selectedClientId);
+
+    // Filter clients by selected clientId
+    if (selectedClientId) {
+      const filtered = clients.filter(
+        (client) => client.id === selectedClientId,
+      );
+      setFilteredClients(filtered);
+    } else {
+      setFilteredClients(clients); // Show all clients if no filter is applied
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -23,15 +40,15 @@ const AllClientsPage = () => {
     <div className="all-clients-page">
       <h1>All Clients</h1>
 
-      {/* Use ClientList component to display clients and their sites */}
-      <ClientList clients={clients} sites={sites} />
-
-      {/* Pagination */}
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
+      {/* Client Dropdown */}
+      <ClientDropdown
+        clients={clients}
+        selectedClientId={selectedClientId}
+        handleClientChange={handleClientChange}
       />
+
+      {/* Use ClientList component to display clients and their sites */}
+      <ClientList clients={filteredClients} sites={sites} />
     </div>
   );
 };

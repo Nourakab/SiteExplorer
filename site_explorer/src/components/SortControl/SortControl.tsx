@@ -1,5 +1,5 @@
 import React from 'react';
-import { BiSortDown, BiSortUp } from 'react-icons/bi'; // Import the sort icons
+import { BiSortDown, BiSortUp } from 'react-icons/bi';
 import './SortControl.css';
 
 interface SortControlProps {

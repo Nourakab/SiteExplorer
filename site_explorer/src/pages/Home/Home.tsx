@@ -10,11 +10,16 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientsData = await getClients();
-      const { data: sitesData } = await getSitesWithPagination(1, 5); // Fetch the first 5 recent sites
-      setTotalClients(clientsData.length);
-      setTotalSites(sitesData.length); // Assuming the total is available in the response
-      setRecentSites(sitesData);
+      try {
+        const clientsData = await getClients();
+        const { data: sitesData } = await getSitesWithPagination(1, 5);
+
+        setTotalClients(clientsData.length);
+        setTotalSites(sitesData.length);
+        setRecentSites(sitesData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
 
     fetchData();
@@ -22,9 +27,8 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <h1>Welcome to the Client Sites Portal</h1>
+      <h1>Welcome to Site Explorer</h1>
 
-      {/* Key Metrics Section */}
       <div className="metrics">
         <div className="metric-item">
           <h3>Total Sites</h3>
@@ -36,7 +40,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Recent Sites Section */}
       <div className="recent-sites">
         <h2>Recently Added Sites</h2>
         <ul>
@@ -48,13 +51,12 @@ const Home = () => {
         </ul>
       </div>
 
-      {/* Navigation Links */}
       <div className="navigation-links">
         <Link to="/sites">
           <button>View All Sites</button>
         </Link>
         <Link to="/clients">
-          <button>Filter Sites by Client</button>
+          <button>View All Clients</button>
         </Link>
       </div>
     </div>

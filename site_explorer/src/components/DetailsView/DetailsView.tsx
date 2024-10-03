@@ -1,22 +1,26 @@
-//The DetailsView component will show detailed information for a single site.
-
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getSiteDetails } from '../../services/api';
 import { Site } from '../../types/Site';
+import { FaRegUser } from 'react-icons/fa';
+import { IoLocationSharp } from 'react-icons/io5';
+import { TiBusinessCard } from 'react-icons/ti';
+import { FaPhone } from 'react-icons/fa6';
+import { MdOutlineMail } from 'react-icons/md';
+import './DetailsView.css';
 
 const DetailsView = () => {
-  const { id } = useParams<{ id: string }>(); // Explicitly define id as string in useParams
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate(); // Hook to navigate back
   const [site, setSite] = useState<Site | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      // Check if id exists
       const fetchSiteDetails = async () => {
         try {
-          const data = await getSiteDetails(id); // Fetch site details using the API
+          const data = await getSiteDetails(id);
           setSite(data);
           setLoading(false);
         } catch (error) {
@@ -33,25 +37,43 @@ const DetailsView = () => {
     }
   }, [id]);
 
+  const handleBackClick = () => {
+    navigate(-1); // Navigate back to the previous page (ListView)
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div className="details-view">
+      <div className="back-button">
+        <button onClick={handleBackClick}>← Back to list</button>
+      </div>
       <img src={site?.images[0]} alt={site?.title} className="details-image" />
       <h1>{site?.title}</h1>
       <p>
-        {site?.address.street}, {site?.address.city}, {site?.address.country}
+        <IoLocationSharp /> {site?.address.street}, {site?.address.city},{' '}
+        {site?.address.country}
       </p>
 
       <div className="contact-info">
         <p>
-          Contact: {site?.contacts.main.firstName}{' '}
+          <FaRegUser /> Contact: {site?.contacts.main.firstName}{' '}
           {site?.contacts.main.lastName}
         </p>
-        <p>Job Title: {site?.contacts.main.jobTitle}</p>
-        <p>Phone: {site?.contacts.main.phoneNumber}</p>
-        <p>Email: {site?.contacts.main.email}</p>
+        <p>
+          {' '}
+          <TiBusinessCard /> Title: {site?.contacts.main.jobTitle}
+        </p>
+        <p>
+          {' '}
+          <FaPhone />
+          Phone: {site?.contacts.main.phoneNumber}
+        </p>
+        <p>
+          <MdOutlineMail />
+          Email: {site?.contacts.main.email}
+        </p>
       </div>
     </div>
   );
